@@ -17,7 +17,7 @@ Built using **HTML, CSS, and JavaScript**, designed with a clean **dark theme** 
 ---
 
 ## 🚀 Live Demo  
-🎮 Play now → [Click Here](https://yourusername.github.io/word-guessing-game/)  
+🎮 Play now → [Click Here](https://pratima-jain.github.io/word-guessing-game/)  
 
 ---
 
