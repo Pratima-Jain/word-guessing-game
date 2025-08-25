@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Word Guessing Game</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
+    body {
+      background: linear-gradient(135deg, #e0f7fa, #ede7f6);
+      color: #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      background: #ffffff;
+      padding: 25px;
+      border-radius: 18px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+      text-align: center;
+      width: 100%;
+      max-width: 500px;
+      transition: 0.3s;
+    }
+    h1 { font-size: 2rem; margin-bottom: 20px; color: #00796b; }
+    label { font-weight: 600; }
+    select, input {
+      padding: 10px; border-radius: 10px; border: 1px solid #ccc;
+      margin: 10px 0; width: 100%; font-size: 1rem;
+      outline: none; background: #f9f9f9; color: #333; transition: 0.3s;
+    }
+    select:focus, input:focus { border: 2px solid #00796b; background: #ffffff; }
+    button {
+      padding: 12px; border-radius: 10px; border: none;
+      background: #00796b; color: #fff; font-weight: bold;
+      cursor: pointer; margin-top: 15px; width: 100%; font-size: 1rem; transition: 0.3s;
+    }
+    button:hover { background: #004d40; }
+    #output { margin-top: 20px; font-size: 1.1rem; min-height: 50px; color: #444; }
+    #hint { margin-top: 15px; font-size: 1.3rem; letter-spacing: 3px; color: #d32f2f; font-weight: bold; }
+    #extraHint { margin-top: 10px; font-size: 1rem; color: #303f9f; font-style: italic; }
+    #playAgain { display: none; margin-top: 20px; background: #ff7043; }
+    #playAgain:hover { background: #e64a19; }
+    @media (max-width: 600px) {
+      .container { padding: 20px; border-radius: 12px; }
+      h1 { font-size: 1.6rem; }
+      select, input, button { font-size: 0.95rem; padding: 10px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Word Guessing Game 🎮</h1>
+
+    <!-- Difficulty Selection -->
+    <label for="difficulty">Choose Difficulty:</label>
+    <select id="difficulty">
+      <option value="easy">Easy</option>
+      <option value="medium">Medium</option>
+      <option value="hard">Hard</option>
+    </select>
+    <button onclick="startGame()">Start Game</button>
+
+    <!-- Guess Section -->
+    <div id="gameSection" style="display:none;">
+      <input type="text" id="guessInput" placeholder="Enter your guess" 
+        onkeypress="if(event.key === 'Enter'){ handleGuess(); }" />
+      <button id="guessBtn" onclick="handleGuess()">Submit Guess</button>
+    </div>
+
+    <!-- Output Section -->
+    <div id="output"></div>
+    <div id="hint"></div>
+    <div id="extraHint"></div>
+    <button id="playAgain" onclick="location.reload()">Play Again</button>
+  </div>
+
+  <!-- Audio Setup -->
+  <audio id="sound-correct" src="sounds/correct.mp3"></audio>
+  <audio id="sound-wrong" src="sounds/wrong.mp3"></audio>
+  <audio id="sound-win" src="sounds/win.mp3"></audio>
+  <audio id="sound-lose" src="sounds/lose.mp3"></audio>
+
+  <script>
+    let secret = "";
+    let attempts = 0;
+    let maxAttempts = 5;
+
+    // Word categories
+    const words = {
+      colors: ['red', 'blue', 'green', 'yellow', 'purple'],
+      numbers: ['one', 'two', 'three', 'seven', 'ten', 'eleven', 'twenty'],
+      animals: ['cat', 'dog', 'elephant', 'lion', 'tiger'],
+      moods: ['happy', 'sad', 'angry', 'excited', 'calm'],
+      objectsEasy: ['ball', 'apple', 'house'],
+      objectsHard: ['computer', 'river', 'mountain', 'electricity']
+    };
+
+    function getCategory(word) {
+      if (words.colors.includes(word)) return "🎨 This is a color";
+      if (words.numbers.includes(word)) return "🔢 This is a number";
+      if (words.animals.includes(word)) return "🐾 This is an animal";
+      if (words.moods.includes(word)) return "🙂 This is a mood";
+      if (words.objectsEasy.includes(word) || words.objectsHard.includes(word)) return "🌀 This is an object";
+      return "❓ Unknown category";
+    }
+
+    function playSound(id) {
+      const sound = document.getElementById(id);
+      sound.currentTime = 0;
+      sound.play();
+    }
+
+    function startGame() {
+      const difficulty = document.getElementById("difficulty").value;
+      let availableWords = [];
+
+      if (difficulty === "easy") {
+        availableWords = [...words.colors, ...words.animals, ...words.objectsEasy];
+        maxAttempts = 7;
+      } else if (difficulty === "medium") {
+        availableWords = [...words.moods, ...words.objectsEasy];
+        maxAttempts = 5;
+      } else if (difficulty === "hard") {
+        availableWords = [...words.numbers, ...words.objectsHard];
+        maxAttempts = 3;
+      }
+
+      secret = availableWords[Math.floor(Math.random() * availableWords.length)];
+
+      attempts = 0;
+      document.getElementById("gameSection").style.display = "block";
+      document.getElementById("output").innerText = "Game Started! Guess the word.";
+      document.getElementById("hint").innerText = "*".repeat(secret.length);
+      document.getElementById("extraHint").innerText = getCategory(secret);
+    }
+
+    function endGame(message, isWin = false) {
+      document.getElementById("output").innerText = message;
+      document.getElementById("guessInput").disabled = true;
+      document.getElementById("guessBtn").disabled = true;
+      document.getElementById("playAgain").style.display = "block";
+      playSound(isWin ? "sound-win" : "sound-lose");
+    }
+
+    function handleGuess() {
+      const guess = document.getElementById("guessInput").value.toLowerCase();
+      attempts++;
+
+      if (guess === secret) {
+        endGame(`🎉 Congrats! You guessed the word "${secret}" in ${attempts} attempts.`, true);
+        return;
+      }
+
+      if (attempts >= maxAttempts) {
+        endGame(`😞 Game Over! The word was "${secret}".`, false);
+        return;
+      }
+
+      playSound("sound-wrong");
+
+      // Generate hint with stars
+      let hint = "";
+      for (let i = 0; i < secret.length; i++) {
+        if (i < guess.length && guess[i] === secret[i]) {
+          hint += guess[i];
+        } else {
+          hint += "*";
+        }
+      }
+
+      document.getElementById("output").innerText = `❌ Wrong guess! Attempts left: ${maxAttempts - attempts}`;
+      document.getElementById("hint").innerText = hint;
+      document.getElementById("guessInput").value = "";
+    }
+  </script>
+</body>
+</html>
